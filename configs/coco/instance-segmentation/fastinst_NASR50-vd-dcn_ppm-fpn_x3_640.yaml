@@ -1,0 +1,10 @@
+_BASE_: Fast-COCO-InstanceSegmentation.yaml
+MODEL:
+  BACKBONE:
+    NAME: "build_resnet_nas_backbone"
+  WEIGHTS: "FastInst-main/checkpoints/ResNet50D-Params@17.40-FLOPs@1924M.pth"
+  RESNETS:
+    DEFORM_ON_PER_STAGE: [False, False, True, True ] # dcn on res4, res5
+  FASTINST:
+    DEC_LAYERS: 3
+OUTPUT_DIR: "output/fastinst_r50-vd-dcn_ppm-fpn_bs16_50ep_x3_640"
