@@ -109,9 +109,24 @@ class ResNAS50(nn.Module):
             kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False
         )
         self.blocks = nn.ModuleList(blocks)
-        self.global_avg_pool = MyGlobalAvgPool2d(keep_dim=False)
-        # classifier
-        self.classifier = LinearLayer(input_channel, n_classes)
+        # self.global_avg_pool = MyGlobalAvgPool2d(keep_dim=False)
+        # self.classifier = LinearLayer(input_channel, n_classes)
+
+        out_features_names = ["res2", "res3", "res4", "res5"]
+        self._out_feature_strides = dict(zip(out_features_names, [4, 8, 16, 32]))
+        self._out_feature_channels = dict(zip(out_features_names, [x for x in stage_width_list]))
+        self._out_features = out_features_names
+
+    def output_shape(self):
+        return {
+            name: ShapeSpec(
+                channels=self._out_feature_channels[name], stride=self._out_feature_strides[name]
+            )
+            for name in self._out_features
+        }
+
+    def size_divisibility(self):
+        return 32
 
     def forward(self, x):
         for layer in self.input_stem:
@@ -125,9 +140,6 @@ class ResNAS50(nn.Module):
                 key = 'res{}'.format(idx + 2)
                 outputs[key] = x
                 idx += 1
-        # x = self.global_avg_pool(x)
-        # x = self.classifier(x)
-        # print(outputs)
         return outputs
 
 @BACKBONE_REGISTRY.register()
